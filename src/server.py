@@ -4,6 +4,8 @@ from packHandler import *
 import logging
 import base
 
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+
 class Server(threading.Thread):
     def __init__(self):
         super().__init__()

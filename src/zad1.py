@@ -13,6 +13,7 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 isRun = True
 
 def sigHandler(signum, frame):
+    logging.debug("__main__ sigHandler")
     isRun = False
 
 if __name__ == '__main__':
