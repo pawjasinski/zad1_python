@@ -6,6 +6,6 @@ class Base(threading.Thread):
         threading.Thread.__init__(self)
         self.isRun = True
     
-    def end(signum):
+    def end(self, signum):
         print("ending")
         self.isRun = False

@@ -1,25 +1,22 @@
 #!/usr/bin/env python3
+from zadLoger import *
 import threading
 
-class PackHandler(threading.Thread):
+class PackHandler():
     def __init__(self):
-        super().__init__()
-        self.cond = threading.Condition()
         self.lst = []
+        self.lck = threading.Lock()
+        self.cond = threading.Condition(self.lck)
     
-    def add(self, nmb):
-        with self.cond:
-            self.lst.append(nmb)
+    def add(self, random: int):
+        with(self.cond):
+            self.lst.append(random)
             self.cond.notify()
     
-    def pop(self):
-        with self.cond:
-            while len(self.lst) == 0:
-                self.cond.wait()
-
-            ret = self.lst[0]
-            self.lst.pop(0)
-            return ret
+    def get(self) -> int:
+        while len(self.lst) == 0:
+            self.cond.wait()
         
-    def end(signum):
-        self.cond.
+        ret = self.lst[0]
+        self.lst.pop(0)
+        return ret

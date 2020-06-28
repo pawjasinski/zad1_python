@@ -1,56 +1,64 @@
 #!/usr/bin/env python3
+
 from client import *
 from server import *
 from allocator import *
 from packHandler import *
 from watcher import *
+from zadLoger import *
 import signal
-import logging
-import base
-
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+import threading
+import time
 
 isRun = True
 
-def sigHandler(signum, frame):
-    logging.debug("__main__ sigHandler")
-    isRun = False
+def client(id, t):
+    cl = Client(id)
+    cl.registerHandler(t)
+    while isRun:
+        cl.rand()
+        cl.push()
+        time.sleep(0.5)
+    cl.saveLog()
+
+def server(id, t, wt, al):
+    srv = Server()
+    srv.registerHandler(t)
+    srv.registerAllocator(al)
+    wt.registWatched(srv)
+    while isRun:
+        srv.pullrand()
+        srv.intToString()
+        srv.show()
+
+def alocator(allctr):
+    while isRun:
+        allctr.ToString()
+
+
+def watcher(wt):
+    while isRun:
+        srvref = wt.checkInactive()
+        if srvref != None:
+            srvref.reset()
+            time.sleep(1)
 
 if __name__ == '__main__':
-    #signal.sigal(signal.SIGINT, sigHandler)
+    signal = signal.signal()
 
-    Th = PackHandler()
-
-    T1 = Client(1) # Client thread
-    T1.registerHandler(Th)
-
-    T2 = Client(2)
-    T2.registerHandler(Th)
+    al = Allocator()
+    wtch = Watcher()
+    th = PackHandler()
     
-    T3 = Client(3)
-    T3.registerHandler(Th)
-    
-    T4 = Server() # Server thread
-    T4.registerHandler(Th)
-
-    T5 = Server() 
-    T5.registerHandler(Th)
-
-    T6 = Allocator() # Allocator thread
-    T4.registerAlloc(T6)
-    T5.registerAlloc(T6)
-
-    T7 = Watcher() # Watchdog thread
-    T7.registerWatched(T4)
-    T7.registerWatched(T5)
-
-    threads = [ T1, T2, T3, T4, T5, T7]
-
-    for t in threads:
-        t.start()
+    threads = [
+        threading.Thread(target = client, args = (1, th)),
+        threading.Thread(target = client, args = (2, th)),
+        threading.Thread(target = client, args = (3, th)),
+        threading.Thread(target = server, args = (1, th, wtch, al)),
+        threading.Thread(target = server, args = (2, th, wtch, al)),
+        threading.Thread(target = alocator, args = (al,)),
+        threading.Thread(target = watcher, args = (wtch,))
+        ]
     
     for t in threads:
         t.join()
-
-    while isRun:
-        time.sleep(1)

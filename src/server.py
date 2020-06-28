@@ -1,41 +1,34 @@
 #!/usr/bin/env python3
 import threading
+import time
 from packHandler import *
-import logging
-import base
+from zadLoger import *
 
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
-class Server(threading.Thread):
+class Server():
     def __init__(self):
-        super().__init__()
-        self.isRun = True
-    
+        self.lck = threading.Lock()
+
     def registerHandler(self, PH):
         self.ph = PH
-    
-    def registerAlloc(self, AL):
-        self.al = AL
 
-    def getRnd(self):
-        self.rnd = self.ph.pop()
+    def registerAllocator(self, al):
+        self.allctr = al
+    
+    def pullrand(self):
+        self.lck.acquire()
+        self.rand = self.ph.get()
+        self.lck.release()
+
+        while self.rand < 100000000 & self.rand > 0:
+            time.sleep(0.100)
     
     def intToString(self):
-        self.rndStr = self.al.getString(self.rnd)
+        self.str = self.allctr.toString(self.rand)
     
-    def print(self):
-        print(self.rndStr)
+    def show(self):
+        print(self.str)
 
-    def receiveSig(self, sig):
-        print('server rec sig: ' + sig)
-        self.run = False
-
-    def run(self):
-        while self.run:
-            self.getRnd()
-            self.intToString()
-            self.print()
-    
-    def end(signum):
-        print("serverending")
-        self.isRun = False
+    def reset(self):
+        with self.lck:
+            self.rand = self.ph.get()
